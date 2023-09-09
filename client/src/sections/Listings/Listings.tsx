@@ -1,5 +1,9 @@
 import { server } from "../../lib/api";
-import { ListingsData } from "./types";
+import {
+  DeleteListingData,
+  DeleteListingVariables,
+  ListingsData,
+} from "./types";
 
 const LISTINGS = `
 query Listings {
@@ -16,6 +20,14 @@ query Listings {
   }
 }`;
 
+const DELETE_LISTING = `
+  mutation DeleteListing($id: ID!) {
+    deleteListing(id: $id) {
+      id
+    }
+  }
+`;
+
 interface Props {
   title: string;
 }
@@ -26,10 +38,23 @@ export const Listings = ({ title }: Props) => {
     console.log(data);
   };
 
+  const deleteListings = async () => {
+    const { data } = await server.fetch<
+      DeleteListingData,
+      DeleteListingVariables
+    >({
+      query: DELETE_LISTING,
+      variables: {
+        id: "64f81a84404793452f3c8fdf",
+      },
+    });
+  };
+
   return (
     <div>
       <h2>{title}</h2>
       <button onClick={fetchListings}>Query Listings!</button>
+      <button onClick={deleteListings}>Delete a Listing!</button>
     </div>
   );
 };
