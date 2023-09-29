@@ -1,9 +1,7 @@
-import { useState } from "react";
-import { server } from "../../lib/api";
+import { useMutation, useQuery } from "../../lib/api";
 import {
   DeleteListingData,
   DeleteListingVariables,
-  Listing,
   ListingsData,
 } from "./types";
 
@@ -35,30 +33,47 @@ interface Props {
 }
 
 export const Listings = ({ title }: Props) => {
-  const [listings, setListings] = useState<Listing[] | null>(null);
+  const { data, refetch, loading, error } = useQuery<ListingsData>(LISTINGS);
 
-  const fetchListings = async () => {
-    const { data } = await server.fetch<ListingsData>({ query: LISTINGS });
-    setListings(data.listings);
+  const [
+    deleteListing,
+    { loading: deleteListingLoading, error: deleteListingError },
+  ] = useMutation<DeleteListingData, DeleteListingVariables>(DELETE_LISTING);
+
+  const handleDeleteListing = async (id: string) => {
+    await deleteListing({ id });
+    refetch();
   };
 
-  const deleteListing = async (id: string) => {
-    await server.fetch<DeleteListingData, DeleteListingVariables>({
-      query: DELETE_LISTING,
-      variables: {
-        id,
-      },
-    });
-    fetchListings();
-  };
+  const listings = data ? data.listings : null;
 
-  const listingsList = listings ? (
+  if (loading) {
+    return <h2>Loading...</h2>;
+  }
+
+  if (error) {
+    return <h2>Uh oh! Something went wrong - please try again later :(</h2>;
+  }
+
+  const deleteListingLoadingMessage = deleteListingLoading ? (
+    <h4>Deletion in progress...</h4>
+  ) : null;
+
+  const deleteListingErrorMessage = deleteListingError ? (
+    <h4>
+      Uh oh! Something went wrong with deleting - please try again later :(
+    </h4>
+  ) : null;
+
+  const listingsList = data ? (
     <ul>
-      {listings.map((listing) => {
+      {listings?.map((listing) => {
         return (
           <li key={listing.id}>
             {listing.title}
-            <button onClick={() => deleteListing(listing.id)}>Delete</button>
+            <button onClick={() => handleDeleteListing(listing.id)}>
+              Delete
+            </button>
           </li>
         );
       })}
@@ -69,7 +84,8 @@ export const Listings = ({ title }: Props) => {
     <div>
       <h2>{title}</h2>
       {listingsList}
-      <button onClick={fetchListings}>Query Listings!</button>
+      {deleteListingLoadingMessage}
+      {deleteListingErrorMessage}
     </div>
   );
 };
