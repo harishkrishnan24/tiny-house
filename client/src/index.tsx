@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import reportWebVitals from "./reportWebVitals";
 import { Listings } from "./sections";
 import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
+import "./styles/index.css";
 
 const client = new ApolloClient({
   uri: "/api",
